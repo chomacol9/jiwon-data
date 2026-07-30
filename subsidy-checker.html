@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>정부지원금 자격 셀프체크 (2026)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Noto+Serif+KR:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  #scapp{
+    --bg:#f3f2ee; --card:#ffffff; --ink:#1c2030; --sub:#6b7280; --faint:#98a0ad;
+    --line:#ece9e2; --line2:#f4f2ec;
+    --accent:#4b3fd4; --accent2:#7a5cf0; --accent-ink:#3a2fb0;
+    --gold:#b98a3c; --gold-soft:#f3e8cf;
+    --ok:#0d7a4f; --ok-bg:#e7f5ec; --ok-line:#bfe6cd;
+    --maybe:#96660d; --maybe-bg:#faf0d7; --maybe-line:#ecd9a6;
+    --no:#8b93a1; --no-bg:#f4f5f7;
+    --radius:16px;
+    max-width:760px;margin:0 auto;padding:0 0 46px;
+    font-family:"Noto Sans KR",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    color:var(--ink);background:var(--bg);border-radius:22px;overflow:hidden;
+    line-height:1.6;-webkit-font-smoothing:antialiased;
+  }
+  #scapp *{box-sizing:border-box;font-family:inherit}
+  #scapp .hero{
+    position:relative;padding:34px 26px 30px;color:#fff;
+    background:radial-gradient(120% 140% at 0% 0%, #2a2350 0%, #1b1b34 46%, #14162a 100%);
+  }
+  #scapp .hero::after{content:"";position:absolute;left:26px;bottom:20px;width:46px;height:3px;
+    background:linear-gradient(90deg,var(--gold),#e6c98a);border-radius:2px}
+  #scapp .hero .kick{font-size:12px;letter-spacing:.14em;text-transform:uppercase;
+    color:#c9b78a;font-weight:500;margin:0 0 10px}
+  #scapp .hero h1{font-family:"Noto Serif KR",serif;font-weight:700;font-size:26px;
+    margin:0 0 10px;letter-spacing:-.2px;line-height:1.3}
+  #scapp .hero p{margin:0;color:#c3c6d6;font-size:13.5px;max-width:52ch}
+  #scapp .body{padding:20px 18px 0}
+  #scapp .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    padding:20px 18px;margin-top:16px;box-shadow:0 8px 26px rgba(24,24,52,.05)}
+  #scapp .card-t{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;
+    letter-spacing:.06em;color:var(--accent-ink);text-transform:uppercase;margin:0 0 16px}
+  #scapp .card-t .dot{width:6px;height:6px;border-radius:50%;background:var(--accent)}
+  #scapp .field{margin-bottom:16px}
+  #scapp .field:last-child{margin-bottom:0}
+  #scapp label.lab{display:block;font-size:13px;font-weight:500;margin-bottom:7px;color:#3a4152}
+  #scapp .lab .hint{font-weight:400;color:var(--faint);font-size:11.5px}
+  #scapp select,#scapp input[type=number]{width:100%;padding:12px 13px;font-size:15px;
+    border:1px solid #e3e0d8;border-radius:11px;background:#fcfbf9;color:var(--ink);
+    appearance:none;transition:border-color .15s, box-shadow .15s}
+  #scapp select:focus,#scapp input[type=number]:focus{outline:none;border-color:var(--accent);
+    box-shadow:0 0 0 3px rgba(75,63,212,.13);background:#fff}
+  #scapp .grid2{display:flex;gap:11px}
+  #scapp .grid2>div{flex:1}
+  #scapp .chips{display:flex;flex-wrap:wrap;gap:8px}
+  #scapp .chip{position:relative}
+  #scapp .chip input{position:absolute;opacity:0;inset:0;cursor:pointer;margin:0}
+  #scapp .chip span{display:block;padding:9px 13px;border:1px solid #e3e0d8;border-radius:999px;
+    font-size:12.5px;background:#fcfbf9;cursor:pointer;user-select:none;transition:all .15s;color:#4a505f}
+  #scapp .chip input:checked+span{background:var(--accent);border-color:var(--accent);
+    color:#fff;box-shadow:0 3px 10px rgba(75,63,212,.24)}
+  #scapp .cta{width:100%;margin-top:4px;padding:15px;font-size:15.5px;font-weight:700;color:#fff;
+    letter-spacing:.02em;background:linear-gradient(120deg,var(--accent),var(--accent2));
+    border:none;border-radius:13px;cursor:pointer;box-shadow:0 8px 20px rgba(75,63,212,.26);
+    transition:transform .12s, box-shadow .12s}
+  #scapp .cta:hover{transform:translateY(-1px);box-shadow:0 11px 24px rgba(75,63,212,.32)}
+  #scapp .cta:active{transform:translateY(0)}
+  /* summary meter */
+  #scapp .sum{margin:2px 2px 2px;padding:16px 16px;background:linear-gradient(180deg,#fbfaf7,#f7f5ef);
+    border:1px solid var(--line);border-radius:var(--radius)}
+  #scapp .sum .row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}
+  #scapp .sum .big{font-family:"Noto Serif KR",serif;font-size:22px;font-weight:700}
+  #scapp .sum .big b{color:var(--accent-ink)}
+  #scapp .sum .tags{font-size:12.5px;color:var(--sub)}
+  #scapp .sum .tags b{color:var(--ink)}
+  #scapp .meter{position:relative;height:8px;border-radius:6px;background:#e9e6de;overflow:hidden}
+  #scapp .meter i{position:absolute;left:0;top:0;bottom:0;border-radius:6px;
+    background:linear-gradient(90deg,var(--accent),var(--accent2))}
+  #scapp .meter-mk{display:flex;justify-content:space-between;font-size:10.5px;color:var(--faint);margin-top:5px}
+  /* result items */
+  #scapp .item{border:1px solid var(--line);border-radius:14px;padding:15px 16px;margin-top:11px;
+    background:#fff;box-shadow:0 4px 14px rgba(24,24,52,.04);transition:transform .12s, box-shadow .12s}
+  #scapp .item:hover{transform:translateY(-1px);box-shadow:0 9px 22px rgba(24,24,52,.08)}
+  #scapp .item.ok{border-top:3px solid var(--ok)}
+  #scapp .item.maybe{border-top:3px solid var(--gold)}
+  #scapp .item.no{background:#fbfbfc;box-shadow:none}
+  #scapp .item .top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+  #scapp .item h3{font-family:"Noto Serif KR",serif;font-size:17px;font-weight:600;margin:0}
+  #scapp .badge{font-size:11px;font-weight:700;padding:4px 10px;border-radius:999px;white-space:nowrap;letter-spacing:.02em}
+  #scapp .badge.ok{color:var(--ok);background:var(--ok-bg);border:1px solid var(--ok-line)}
+  #scapp .badge.maybe{color:var(--maybe);background:var(--maybe-bg);border:1px solid var(--maybe-line)}
+  #scapp .badge.no{color:var(--no);background:var(--no-bg)}
+  #scapp .item .desc{font-size:13px;color:#525a68;margin:9px 0 0}
+  #scapp .item .reason{font-size:12px;margin:9px 0 0;padding:9px 11px;border-radius:9px;
+    background:#f7f8fb;color:#4a5468;border:1px solid #eef0f4}
+  #scapp .item .reason.warn{background:var(--maybe-bg);border-color:var(--maybe-line);color:var(--maybe)}
+  #scapp .item .meta{font-size:12px;margin-top:10px;display:flex;flex-wrap:wrap;gap:7px 14px;align-items:center}
+  #scapp .item .tag{background:var(--gold-soft);color:#7c5a1a;padding:2px 9px;border-radius:6px;font-weight:500;font-size:11px}
+  #scapp .item .meta a{color:var(--accent-ink);text-decoration:none;font-weight:700}
+  #scapp .item .meta a:hover{text-decoration:underline}
+  #scapp .item .meta .ph{color:var(--sub)}
+  #scapp .toggle{margin-top:14px;text-align:center}
+  #scapp .toggle button{background:#fff;border:1px solid var(--line);border-radius:999px;
+    padding:9px 18px;font-size:12.5px;color:var(--sub);cursor:pointer;font-weight:500}
+  #scapp .toggle button:hover{border-color:#d9d5cb}
+  #scapp .empty{font-size:14px;color:var(--sub);text-align:center;padding:20px 8px}
+  #scapp .hide{display:none}
+  /* latest feed */
+  #scapp .feed a.fi{display:block;text-decoration:none;color:inherit;padding:13px 14px;
+    border:1px solid var(--line);border-radius:12px;margin-top:10px;background:#fff;transition:all .12s}
+  #scapp .feed a.fi:hover{border-color:var(--accent);box-shadow:0 6px 16px rgba(75,63,212,.1)}
+  #scapp .feed .ft{font-weight:500;font-size:14px;margin:0}
+  #scapp .feed .fs{font-size:12.5px;color:var(--sub);margin:5px 0 0}
+  #scapp .feed .fd{font-size:11px;color:var(--faint);margin:6px 0 0}
+  #scapp .note{font-size:11.5px;color:var(--sub);margin:18px 2px 0;padding:14px;
+    background:#efeee9;border-radius:12px;line-height:1.7}
+  #scapp .note b{color:#3a4152}
+  #scapp .updated{font-size:11.5px;color:var(--faint);text-align:right;margin-top:2px}
+  /* ===== 글자 크기 상향(가독성) ===== */
+  #scapp .card-t{font-size:12.5px}
+  #scapp .hero h1{font-size:28px}
+  #scapp .hero p{font-size:15px}
+  #scapp select,#scapp input[type=number]{font-size:16.5px}
+  #scapp label.lab{font-size:14.5px}
+  #scapp .chip span{font-size:14px}
+  #scapp .cta{font-size:17px}
+  #scapp .sum .big{font-size:24px}
+  #scapp .sum .tags{font-size:14px}
+  #scapp .item h3{font-size:19px}
+  #scapp .item .desc{font-size:14.5px}
+  #scapp .item .reason{font-size:13px}
+  #scapp .item .meta{font-size:13px}
+  #scapp .badge{font-size:12px}
+  #scapp .feed .ft{font-size:16px}
+  #scapp .feed .fs{font-size:13.5px}
+  #scapp .note{font-size:12.5px}
+  /* ===== 모바일 최적화 ===== */
+  @media (max-width:480px){
+    #scapp{border-radius:0}
+    #scapp .hero{padding:26px 18px 24px}
+    #scapp .hero h1{font-size:24px}
+    #scapp .body{padding:16px 12px 0}
+    #scapp .card{padding:17px 15px}
+    #scapp .sum .big{font-size:22px}
+    #scapp .item h3{font-size:18px}
+  }
+</style>
+</head>
+<body>
+<div id="scapp">
+  <div class="hero">
+    <p class="kick">2026 정부지원 셀프체크</p>
+    <h1>내가 놓치고 있는<br>정부지원금, 1분 만에 확인</h1>
+    <p>지역·나이·가구·소득만 고르면 받을 수 있는 제도를 바로 찾아드려요. 참고용이며 최종 자격은 공식기관에서 확인하세요.</p>
+  </div>
+
+  <div class="body">
+    <div class="card">
+      <p class="card-t"><span class="dot"></span>내 정보 입력</p>
+
+      <div class="field">
+        <label class="lab">거주 지역</label>
+        <select id="f-region"><option value="">선택하세요</option></select>
+      </div>
+
+      <div class="grid2">
+        <div class="field">
+          <label class="lab">나이 <span class="hint">(만)</span></label>
+          <input type="number" id="f-age" min="0" max="120" step="1" placeholder="예: 32" inputmode="numeric">
+        </div>
+        <div class="field">
+          <label class="lab">가구원 수 <span class="hint">(본인 포함)</span></label>
+          <select id="f-hh">
+            <option value="1">1인</option><option value="2">2인</option><option value="3">3인</option>
+            <option value="4">4인</option><option value="5">5인</option><option value="6">6인</option>
+            <option value="7">7인 이상</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="lab">가구 월 소득 <span class="hint">(세전·가구원 합산·만원)</span></label>
+        <input type="number" id="f-income" min="0" max="99999" step="10" value="250" inputmode="numeric">
+      </div>
+
+      <div class="field">
+        <label class="lab">해당되는 상황 <span class="hint">(복수 선택)</span></label>
+        <div class="chips">
+          <label class="chip"><input type="checkbox" id="c-work"><span>근로·사업소득 있음</span></label>
+          <label class="chip"><input type="checkbox" id="c-single"><span>한부모</span></label>
+          <label class="chip"><input type="checkbox" id="c-child"><span>18세 이하 자녀</span></label>
+          <label class="chip"><input type="checkbox" id="c-student"><span>초·중·고 학생 자녀</span></label>
+          <label class="chip"><input type="checkbox" id="c-disable"><span>장애인 가구</span></label>
+          <label class="chip"><input type="checkbox" id="c-multi"><span>다자녀</span></label>
+          <label class="chip"><input type="checkbox" id="c-nohome"><span>무주택</span></label>
+          <label class="chip"><input type="checkbox" id="c-crisis"><span>실직·질병 등 위기</span></label>
+        </div>
+      </div>
+
+      <button class="cta" id="f-run">내 지원금 확인하기 →</button>
+    </div>
+
+    <div id="sc-results"></div>
+
+    <div class="card feed hide" id="sc-feed">
+      <p class="card-t"><span class="dot"></span>이번 주 새 지원금 소식</p>
+      <div id="sc-feed-list"></div>
+      <div class="updated" id="sc-feed-updated"></div>
+    </div>
+
+    <div class="note">
+      ⚠️ 본 도구는 <b>참고용</b>입니다. 실제 복지 자격은 월급이 아니라 <b>소득인정액</b>(소득+재산 환산)과 세부 요건으로 결정되며, 제도·금액·기간은 매년 공고로 바뀝니다.
+      정확한 판정은 <b>복지로 모의계산</b>(bokjiro.go.kr), <b>복지멤버십</b>, 거주지 <b>행정복지센터</b>(☎129)에서 확인하세요.<br>
+      · 소득 기준: 2026년 기준중위소득(2026.1.1 시행) · 데이터 기준일: 2026-07
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var MEDIAN = {1:2564238,2:4199292,3:5359036,4:6494738,5:7556719,6:8555952,7:9555185};
+  function median(hh){ hh=Math.min(Math.max(hh,1),7); return MEDIAN[hh]; }
+
+  var REGIONS = ["서울특별시","부산광역시","대구광역시","인천광역시","광주광역시","대전광역시","울산광역시","세종특별자치시",
+    "경기도","강원특별자치도","충청북도","충청남도","전북특별자치도","전라남도","경상북도","경상남도","제주특별자치도"];
+  var rsel=document.getElementById('f-region');
+  REGIONS.forEach(function(r){var o=document.createElement('option');o.value=r;o.textContent=r;rsel.appendChild(o);});
+
+  var PROGRAMS = [
+    {id:'saengye',name:'생계급여',cat:'기초생활보장',ratio:0.32,ageMin:0,ageMax:200,
+      desc:'소득인정액이 기준중위소득 32% 이하인 가구에 생계비를 현금 지원.',link:'https://www.bokjiro.go.kr',phone:'129'},
+    {id:'uiryo',name:'의료급여',cat:'기초생활보장',ratio:0.40,ageMin:0,ageMax:200,
+      desc:'중위 40% 이하 가구의 의료비 본인부담을 크게 경감.',link:'https://www.bokjiro.go.kr',phone:'129'},
+    {id:'juger',name:'주거급여',cat:'기초생활보장',ratio:0.48,ageMin:0,ageMax:200,
+      desc:'중위 48% 이하 가구에 임차료 또는 주택 수선비 지원.',link:'https://www.bokjiro.go.kr',phone:'129'},
+    {id:'gyoyuk',name:'교육급여',cat:'기초생활보장',ratio:0.50,ageMin:0,ageMax:200,need:['student'],
+      needMsg:'초·중·고 학생 자녀가 있는 가구 대상.',
+      desc:'중위 50% 이하 가구의 초·중·고 교육활동지원비 등 지원.',link:'https://www.bokjiro.go.kr',phone:'129'},
+    {id:'chasang',name:'차상위계층',cat:'저소득',ratio:0.50,ageMin:0,ageMax:200,
+      desc:'기초수급자는 아니지만 중위 50% 이하인 계층. 각종 감면·바우처 연계.',link:'https://www.bokjiro.go.kr',phone:'129'},
+    {id:'cheongsave',name:'청년내일저축계좌',cat:'청년·자산형성',ratio:1.00,ageMin:15,ageMax:39,need:['work'],
+      needMsg:'근로·사업소득이 월 10만원 이상 있어야 함.',
+      desc:'매월 10만원 저축 시 정부가 월 10만~30만원 매칭(중위 50% 이하는 30만원). 3년 유지 시 최대 1,440만원+.',
+      link:'https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do?wlfareInfoId=WLF00000060&wlfareInfoReldBztpCd=01',phone:'1522-3690'},
+    {id:'gicho',name:'기초연금',cat:'노년',ageMin:65,ageMax:200,
+      absFn:function(hh){return hh<=1?2470000:3952000;},absMsg:'소득인정액 단독 247만원·부부 395.2만원(2026) 이하.',
+      desc:'만 65세 이상 소득 하위 70% 어르신에게 매월 기초연금 지급.',link:'https://basicpension.mohw.go.kr',phone:'129'},
+    {id:'hanbumo',name:'한부모가족 아동양육비',cat:'한부모',ratio:0.65,ageMin:0,ageMax:200,need:['single','child'],
+      needMsg:'한부모이면서 만 18세 이하(취학 시 22세 미만) 자녀 양육.',
+      desc:'중위 65% 이하 한부모가족에 자녀 1인당 월 아동양육비 지원(2026 확대).',link:'https://www.bokjiro.go.kr',phone:'1644-6621'},
+    {id:'cheongwolse',name:'청년월세 특별지원',cat:'청년·주거',ratio:0.60,ageMin:19,ageMax:34,need:['nohome'],
+      needMsg:'무주택·독립거주 청년. 청년가구 중위 60%↓ & 원가구 중위 100%↓(공고 확인).',
+      desc:'무주택 청년에게 월세를 최대 월 20만원·최장 12개월 지원(회차별 공고 확인).',link:'https://www.bokjiro.go.kr',phone:'1600-0777'},
+    {id:'mirae',name:'청년미래적금 / 청년도약계좌',cat:'청년·자산형성',ratio:2.00,ageMin:19,ageMax:34,
+      desc:'만 19~34세 청년 자산형성 지원(정부기여금+비과세). 가구 중위 200~250%↓·개인소득 상한. 2026 상품 공고 확인.',
+      link:'https://www.kinfa.or.kr',phone:'1397'},
+    {id:'ginggeup',name:'긴급복지지원',cat:'위기·긴급',ratio:0.75,ageMin:0,ageMax:200,need:['crisis'],
+      needMsg:'실직·질병·휴폐업 등 갑작스러운 위기상황 요건.',
+      desc:'위기가구에 생계·의료·주거비 등을 신속 지원(중위 75% 이하 기준).',link:'https://www.bokjiro.go.kr',phone:'129'}
+  ];
+
+  function fmt(won){return Math.round(won/10000).toLocaleString('ko-KR')+'만원';}
+
+  function evaluate(inp){
+    var out=[];
+    PROGRAMS.forEach(function(p){
+      var reasons=[],ageOk=true,incomeOk=true,needPending=false;
+      if(inp.age!==null && (inp.age<p.ageMin||inp.age>p.ageMax)){ageOk=false;
+        reasons.push('나이 요건 '+(p.ageMax>=200?('만 '+p.ageMin+'세 이상'):('만 '+p.ageMin+'~'+p.ageMax+'세'))+' 밖');}
+      var ceil;
+      if(p.absFn)ceil=p.absFn(inp.hh); else if(p.ratio)ceil=median(inp.hh)*p.ratio;
+      if(ceil!==undefined && inp.income!==null){
+        if(inp.income>ceil){incomeOk=false;reasons.push('소득 상한 '+fmt(ceil)+' 초과 (입력 '+fmt(inp.income)+')');}
+        else reasons.push('소득 상한 '+fmt(ceil)+' 이내 ✓');
+      }
+      if(p.need)p.need.forEach(function(k){if(!inp.flags[k])needPending=true;});
+      var status=(!ageOk||!incomeOk)?'no':(needPending?'maybe':'ok');
+      out.push({p:p,status:status,reasons:reasons});
+    });
+    var order={ok:0,maybe:1,no:2};
+    out.sort(function(a,b){return order[a.status]-order[b.status];});
+    return out;
+  }
+
+  function itemHtml(x){
+    var p=x.p,s=x.status;
+    var badge=s==='ok'?'해당 가능':s==='maybe'?'조건 확인':'미해당';
+    var h='<div class="item '+s+'">';
+    h+='<div class="top"><h3>'+p.name+'</h3><span class="badge '+s+'">'+badge+'</span></div>';
+    h+='<div class="desc">'+p.desc+'</div>';
+    if(s==='maybe'&&p.needMsg)h+='<div class="reason warn">확인 필요 · '+p.needMsg+'</div>';
+    if(x.reasons.length)h+='<div class="reason">'+x.reasons.join(' · ')+'</div>';
+    h+='<div class="meta"><span class="tag">'+p.cat+'</span>';
+    if(p.link)h+='<a href="'+p.link+'" target="_blank" rel="noopener">공식 안내 ↗</a>';
+    if(p.phone)h+='<span class="ph">☎ '+p.phone+'</span>';
+    h+='</div></div>';
+    return h;
+  }
+
+  function render(list,inp){
+    var box=document.getElementById('sc-results');
+    var okc=list.filter(function(x){return x.status==='ok';}).length;
+    var mbc=list.filter(function(x){return x.status==='maybe';}).length;
+    var pctW=Math.min(inp.pct,250)/250*100;
+    var h='';
+    h+='<div class="card"><div class="sum">';
+    h+='<div class="row"><div class="big">우리 가구 <b>중위 '+inp.pct+'%</b></div>'+
+       '<div class="tags">해당 가능 <b>'+okc+'</b> · 조건 확인 <b>'+mbc+'</b></div></div>';
+    h+='<div class="meter"><i style="width:'+pctW+'%"></i></div>';
+    h+='<div class="meter-mk"><span>0%</span><span>50%</span><span>100%</span><span>150%</span><span>250%</span></div>';
+    h+='</div>';
+
+    list.forEach(function(x){if(x.status!=='no')h+=itemHtml(x);});
+    if(okc+mbc===0)h+='<div class="empty">입력 조건으로 바로 매칭되는 제도가 없어요.<br>소득·상황을 조정하거나 복지로 모의계산으로 더 넓게 확인해 보세요.</div>';
+
+    var noList=list.filter(function(x){return x.status==='no';});
+    if(noList.length){
+      h+='<div class="toggle"><button id="sc-more">해당 안 되는 제도 '+noList.length+'개 보기</button></div>';
+      h+='<div id="sc-nobox" class="hide">';
+      noList.forEach(function(x){h+=itemHtml(x);});
+      h+='</div>';
+    }
+    h+='</div>';
+    box.innerHTML=h;
+    var mb=document.getElementById('sc-more');
+    if(mb)mb.addEventListener('click',function(){
+      var nb=document.getElementById('sc-nobox');nb.classList.toggle('hide');
+      mb.textContent=nb.classList.contains('hide')?('해당 안 되는 제도 '+noList.length+'개 보기'):'접기';
+    });
+    box.scrollIntoView({behavior:'smooth',block:'start'});
+  }
+
+  document.getElementById('f-run').addEventListener('click',function(){
+    var age=document.getElementById('f-age').value,income=document.getElementById('f-income').value;
+    var hh=parseInt(document.getElementById('f-hh').value,10)||1;
+    if(age===''){alert('나이를 입력해 주세요.');return;}
+    if(income===''){alert('가구 월 소득을 입력해 주세요. (모르면 대략적인 금액으로)');return;}
+    var inp={age:parseInt(age,10),income:parseInt(income,10)*10000,hh:hh,
+      region:document.getElementById('f-region').value,
+      flags:{work:c('c-work'),single:c('c-single'),child:c('c-child'),student:c('c-student'),
+        disable:c('c-disable'),multi:c('c-multi'),nohome:c('c-nohome'),crisis:c('c-crisis')}};
+    inp.pct=Math.round(inp.income/median(hh)*100);
+    render(evaluate(inp),inp);
+  });
+  function c(id){return document.getElementById(id).checked;}
+
+  // ===== GitHub data.json 최신 소식 피드 (선택) =====
+  // 아래 DATA_URL 에 GitHub raw 주소를 넣으면 자동으로 최신 공고가 표시됨.
+  // 예: "https://raw.githubusercontent.com/사용자명/저장소/main/data.json"
+  var DATA_URL = "https://raw.githubusercontent.com/chomacol9/jiwon-data/main/data.json";
+  if(DATA_URL){
+    fetch(DATA_URL,{cache:"no-store"}).then(function(r){return r.json();}).then(function(d){
+      var items=(d&&d.items)||[];
+      if(!items.length)return;
+      var list=document.getElementById('sc-feed-list');
+      var html='';
+      items.slice(0,6).forEach(function(it){
+        html+='<a class="fi" href="'+(it.link||'#')+'" target="_blank" rel="noopener">';
+        html+='<p class="ft">'+(it.title||'')+'</p>';
+        if(it.summary)html+='<p class="fs">'+it.summary+'</p>';
+        var d2=[];if(it.amount)d2.push('💰 '+it.amount);if(it.period)d2.push('🗓 '+it.period);if(it.date)d2.push(it.date);
+        if(d2.length)html+='<p class="fd">'+d2.join('  ·  ')+'</p>';
+        html+='</a>';
+      });
+      list.innerHTML=html;
+      if(d.updated)document.getElementById('sc-feed-updated').textContent='업데이트: '+d.updated;
+      document.getElementById('sc-feed').classList.remove('hide');
+    }).catch(function(){});
+  }
+})();
+</script>
+</body>
+</html>
