@@ -377,6 +377,12 @@
   if(DATA_URL){
     fetch(DATA_URL,{cache:"no-store"}).then(function(r){return r.json();}).then(function(d){
       var items=(d&&d.items)||[];
+      // 신청 종료일(end)이 지난 항목은 피드에서 자동 제외 (end 없으면 상시=표시)
+      var _t=new Date();_t.setHours(0,0,0,0);
+      items=items.filter(function(it){
+        if(!it.end)return true;
+        return _t<=new Date(it.end+'T23:59:59');
+      });
       if(!items.length)return;
       var list=document.getElementById('sc-feed-list');
       var html='';
