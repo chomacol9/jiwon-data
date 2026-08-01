@@ -16,6 +16,7 @@
     --ok:#0d7a4f; --ok-bg:#e7f5ec; --ok-line:#bfe6cd;
     --maybe:#96660d; --maybe-bg:#faf0d7; --maybe-line:#ecd9a6;
     --no:#8b93a1; --no-bg:#f4f5f7;
+    --closed:#c62828; --closed-bg:#fdecea; --closed-line:#f5c6c2;
     --radius:16px;
     max-width:760px;margin:0 auto;padding:0 0 46px;
     font-family:"Noto Sans KR",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
@@ -83,16 +84,20 @@
   #scapp .item.ok{border-top:3px solid var(--ok)}
   #scapp .item.maybe{border-top:3px solid var(--gold)}
   #scapp .item.no{background:#fbfbfc;box-shadow:none}
+  #scapp .item.closed{border-top:3px solid var(--closed);background:#fffafa}
   #scapp .item .top{display:flex;align-items:center;justify-content:space-between;gap:8px}
   #scapp .item h3{font-family:"Noto Serif KR",serif;font-size:17px;font-weight:600;margin:0}
+  #scapp .item.closed h3{color:var(--closed)}
   #scapp .badge{font-size:11px;font-weight:700;padding:4px 10px;border-radius:999px;white-space:nowrap;letter-spacing:.02em}
   #scapp .badge.ok{color:var(--ok);background:var(--ok-bg);border:1px solid var(--ok-line)}
   #scapp .badge.maybe{color:var(--maybe);background:var(--maybe-bg);border:1px solid var(--maybe-line)}
   #scapp .badge.no{color:var(--no);background:var(--no-bg)}
+  #scapp .badge.closed{color:var(--closed);background:var(--closed-bg);border:1px solid var(--closed-line)}
   #scapp .item .desc{font-size:13px;color:#525a68;margin:9px 0 0}
   #scapp .item .reason{font-size:12px;margin:9px 0 0;padding:9px 11px;border-radius:9px;
     background:#f7f8fb;color:#4a5468;border:1px solid #eef0f4}
   #scapp .item .reason.warn{background:var(--maybe-bg);border-color:var(--maybe-line);color:var(--maybe)}
+  #scapp .item .reason.closed{background:var(--closed-bg);border-color:var(--closed-line);color:var(--closed);font-weight:700}
   #scapp .item .meta{font-size:12px;margin-top:10px;display:flex;flex-wrap:wrap;gap:7px 14px;align-items:center}
   #scapp .item .tag{background:var(--gold-soft);color:#7c5a1a;padding:2px 9px;border-radius:6px;font-weight:500;font-size:11px}
   #scapp .item .meta a{color:var(--accent-ink);text-decoration:none;font-weight:700}
@@ -225,6 +230,9 @@
   var rsel=document.getElementById('f-region');
   REGIONS.forEach(function(r){var o=document.createElement('option');o.value=r;o.textContent=r;rsel.appendChild(o);});
 
+  // ▼▼▼ 신청 마감일(deadline) — 'YYYY-MM-DD' 형식. 오늘 날짜가 이 날짜를 지나면
+  //     결과에서 빨간 "신청 마감" 표시가 붙고 '해당 가능' 집계에서 빠집니다.
+  //     회차가 다시 열리면 날짜를 새 마감일로 바꾸거나, 줄을 지우면(=마감 없음) 상시로 처리됩니다.
   var PROGRAMS = [
     {id:'saengye',name:'생계급여',cat:'기초생활보장',ratio:0.32,ageMin:0,ageMax:200,
       desc:'소득인정액이 기준중위소득 32% 이하인 가구에 생계비를 현금 지원.',link:'https://www.bokjiro.go.kr',phone:'129'},
@@ -238,6 +246,7 @@
     {id:'chasang',name:'차상위계층',cat:'저소득',ratio:0.50,ageMin:0,ageMax:200,
       desc:'기초수급자는 아니지만 중위 50% 이하인 계층. 각종 감면·바우처 연계.',link:'https://www.bokjiro.go.kr',phone:'129'},
     {id:'cheongsave',name:'청년내일저축계좌',cat:'청년·자산형성',ratio:1.00,ageMin:15,ageMax:39,need:['work'],
+      deadline:'2026-05-20',
       needMsg:'근로·사업소득이 월 10만원 이상 있어야 함.',
       desc:'매월 10만원 저축 시 정부가 월 10만~30만원 매칭(중위 50% 이하는 30만원). 3년 유지 시 최대 1,440만원+.',
       link:'https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do?wlfareInfoId=WLF00000060&wlfareInfoReldBztpCd=01',phone:'1522-3690'},
@@ -248,6 +257,7 @@
       needMsg:'한부모이면서 만 18세 이하(취학 시 22세 미만) 자녀 양육.',
       desc:'중위 65% 이하 한부모가족에 자녀 1인당 월 아동양육비 지원(2026 확대).',link:'https://www.bokjiro.go.kr',phone:'1644-6621'},
     {id:'cheongwolse',name:'청년월세 특별지원',cat:'청년·주거',ratio:0.60,ageMin:19,ageMax:34,need:['nohome'],
+      deadline:'2026-05-29',
       needMsg:'무주택·독립거주 청년. 청년가구 중위 60%↓ & 원가구 중위 100%↓(공고 확인).',
       desc:'무주택 청년에게 월세를 최대 월 20만원·최장 12개월 지원(회차별 공고 확인).',link:'https://www.bokjiro.go.kr',phone:'1600-0777'},
     {id:'mirae',name:'청년미래적금 / 청년도약계좌',cat:'청년·자산형성',ratio:2.00,ageMin:19,ageMax:34,
@@ -259,6 +269,14 @@
   ];
 
   function fmt(won){return Math.round(won/10000).toLocaleString('ko-KR')+'만원';}
+
+  // 오늘(자정 기준)이 마감일을 지났는지 판정
+  function isClosed(p){
+    if(!p.deadline) return false;
+    var today=new Date(); today.setHours(0,0,0,0);
+    var dl=new Date(p.deadline+'T23:59:59');
+    return today>dl;
+  }
 
   function evaluate(inp){
     var out=[];
@@ -274,20 +292,28 @@
       }
       if(p.need)p.need.forEach(function(k){if(!inp.flags[k])needPending=true;});
       var status=(!ageOk||!incomeOk)?'no':(needPending?'maybe':'ok');
-      out.push({p:p,status:status,reasons:reasons});
+      out.push({p:p,status:status,reasons:reasons,closed:isClosed(p)});
     });
-    var order={ok:0,maybe:1,no:2};
-    out.sort(function(a,b){return order[a.status]-order[b.status];});
+    // 정렬: 해당 가능 → 조건 확인 → 신청 마감 → 미해당
+    var order={ok:0,maybe:1,no:3};
+    out.sort(function(a,b){
+      var ao=a.closed?2:order[a.status];
+      var bo=b.closed?2:order[b.status];
+      return ao-bo;
+    });
     return out;
   }
 
   function itemHtml(x){
     var p=x.p,s=x.status;
-    var badge=s==='ok'?'해당 가능':s==='maybe'?'조건 확인':'미해당';
-    var h='<div class="item '+s+'">';
-    h+='<div class="top"><h3>'+p.name+'</h3><span class="badge '+s+'">'+badge+'</span></div>';
+    var badge=x.closed?'신청 마감':(s==='ok'?'해당 가능':s==='maybe'?'조건 확인':'미해당');
+    var badgeCls=x.closed?'closed':s;
+    var itemCls=s+(x.closed?' closed':'');
+    var h='<div class="item '+itemCls+'">';
+    h+='<div class="top"><h3>'+p.name+'</h3><span class="badge '+badgeCls+'">'+badge+'</span></div>';
     h+='<div class="desc">'+p.desc+'</div>';
-    if(s==='maybe'&&p.needMsg)h+='<div class="reason warn">확인 필요 · '+p.needMsg+'</div>';
+    if(x.closed)h+='<div class="reason closed">⛔ 신청 기간이 마감되었습니다 (마감일 '+p.deadline+'). 다음 회차 공고를 확인하세요.</div>';
+    if(!x.closed&&s==='maybe'&&p.needMsg)h+='<div class="reason warn">확인 필요 · '+p.needMsg+'</div>';
     if(x.reasons.length)h+='<div class="reason">'+x.reasons.join(' · ')+'</div>';
     h+='<div class="meta"><span class="tag">'+p.cat+'</span>';
     if(p.link)h+='<a href="'+p.link+'" target="_blank" rel="noopener">공식 안내 ↗</a>';
@@ -298,8 +324,9 @@
 
   function render(list,inp){
     var box=document.getElementById('sc-results');
-    var okc=list.filter(function(x){return x.status==='ok';}).length;
-    var mbc=list.filter(function(x){return x.status==='maybe';}).length;
+    // 마감된 제도는 '해당 가능/조건 확인' 집계에서 제외
+    var okc=list.filter(function(x){return x.status==='ok'&&!x.closed;}).length;
+    var mbc=list.filter(function(x){return x.status==='maybe'&&!x.closed;}).length;
     var pctW=Math.min(inp.pct,250)/250*100;
     var h='';
     h+='<div class="card"><div class="sum">';
