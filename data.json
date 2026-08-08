@@ -1,6 +1,15 @@
 {
-  "updated": "2026-08-07",
+  "updated": "2026-08-08",
   "items": [
+    {
+      "title": "나주 청년 활력소득 3분기 (분기 30만 원)",
+      "summary": "나주시 거주 청년에게 분기별 30만 원을 나주사랑상품권으로 지급. 3분기 접수는 8월 5일 시작, 9월 23일까지.",
+      "amount": "분기 30만 원",
+      "period": "~2026-09-23",
+      "date": "2026-08-08",
+      "link": "https://n.news.naver.com/mnews/article/030/0003454616",
+      "end": "2026-09-23"
+    },
     {
       "title": "근로장려금 2026 정기분 (최대 330만 원)",
       "summary": "일하는 저소득 가구에 지급하는 근로장려세제. 가구 유형에 따라 지급액이 다르며 맞벌이 가구는 최대 330만 원. 정기신청분은 8월 말부터 지급.",
@@ -63,14 +72,6 @@
       "date": "2026-08-01",
       "link": "https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do?wlfareInfoId=WLF00000055&wlfareInfoReldBztpCd=01",
       "end": "2026-11-30"
-    },
-    {
-      "title": "기초연금 (2026, 상시신청)",
-      "summary": "만 65세 이상, 소득인정액이 선정기준액(단독 247만원·부부 395.2만원) 이하면 매월 최대 34만9,700원 지급. 소득 하위 70% 대상, 만 65세 되기 1달 전부터 상시 신청.",
-      "amount": "매월 최대 349,700원 (2026 기준연금액)",
-      "period": "상시신청 (만 65세 도래 1개월 전부터)",
-      "date": "2026-07-31",
-      "link": "https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do?wlfareInfoId=WLF00001164&wlfareInfoReldBztpCd=01"
     }
   ]
 }
