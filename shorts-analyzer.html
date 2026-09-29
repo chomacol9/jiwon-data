@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>떡상 쇼츠 분석기</title>
+<style>
+  :root{--bg:#0f1117;--card:#181b24;--line:#2a2f3d;--txt:#e8eaf0;--sub:#9aa2b5;--pri:#ff4d5e;--ok:#3ddc97;--warn:#ffb84d}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);font:15px/1.6 -apple-system,"Malgun Gothic","Apple SD Gothic Neo",sans-serif}
+  .wrap{max-width:1000px;margin:0 auto;padding:16px}
+  h1{font-size:22px;margin:8px 0 2px}
+  h2{font-size:17px;margin:0 0 10px}
+  .sub{color:var(--sub);font-size:13px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin:14px 0}
+  label{display:block;font-size:13px;color:var(--sub);margin:8px 0 4px}
+  input,select,textarea{width:100%;background:#0f1117;color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:9px 10px;font:inherit}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+  button{background:var(--pri);color:#fff;border:0;border-radius:8px;padding:10px 16px;font:inherit;font-weight:600;cursor:pointer}
+  button.ghost{background:transparent;border:1px solid var(--line);color:var(--txt)}
+  button:disabled{opacity:.5;cursor:default}
+  .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:12px}
+  .status{font-size:13px;color:var(--sub);margin-top:8px;min-height:18px}
+  .status.err{color:var(--pri)}
+  .vid{display:flex;gap:12px;padding:12px;border:1px solid var(--line);border-radius:10px;margin-top:10px;background:#12151d}
+  .vid img{width:96px;height:170px;object-fit:cover;border-radius:8px;flex:none;background:#000}
+  .vid .meta{flex:1;min-width:0}
+  .vid .t{font-weight:600;margin-bottom:4px;word-break:break-word}
+  .tags span{display:inline-block;font-size:12px;padding:2px 8px;border-radius:99px;border:1px solid var(--line);margin:2px 4px 2px 0;color:var(--sub)}
+  .tags span.hot{border-color:var(--pri);color:var(--pri)}
+  .tags span.good{border-color:var(--ok);color:var(--ok)}
+  .box{background:#12151d;border:1px solid var(--line);border-radius:10px;padding:12px;margin:8px 0;white-space:pre-wrap;word-break:break-word}
+  .box b{color:var(--warn)}
+  details{border:1px solid var(--line);border-radius:10px;margin:8px 0;background:#12151d}
+  summary{cursor:pointer;padding:10px 12px;font-weight:600}
+  details .in{padding:0 12px 12px;white-space:pre-wrap;word-break:break-word}
+  .copy{font-size:12px;padding:4px 10px;margin-top:6px}
+  .hint{font-size:12px;color:var(--sub)}
+  @media(max-width:520px){.vid img{width:72px;height:128px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🔥 떡상 쇼츠 분석기</h1>
+  <div class="sub">검색 → 떡상 채널 발굴 → 심층 분석 → 소재 → 대본/프롬프트. 서버 없이 이 파일 하나로 동작합니다.</div>
+
+  <div class="card">
+    <h2>① API 설정</h2>
+    <div class="grid">
+      <div><label>YouTube Data API 키</label><input id="ytKey" type="password" placeholder="AIza..." autocomplete="off"></div>
+      <div><label>Gemini API 키</label><input id="gmKey" type="password" placeholder="AIza..." autocomplete="off"></div>
+      <div><label>Gemini 모델</label><input id="gmModel" value="gemini-2.5-flash"></div>
+    </div>
+    <div class="row"><button class="ghost" id="saveKeys">이 브라우저에 저장</button><button class="ghost" id="clearKeys">키 삭제</button></div>
+    <div class="hint" style="margin-top:8px">키는 이 기기의 localStorage에만 저장되며 Google API로만 전송됩니다. 코드/공유 파일에 키를 넣지 마세요. YouTube 키는 Cloud Console에서 HTTP 리퍼러·API(YouTube Data API v3) 제한을 거는 것을 권장합니다.</div>
+  </div>
+
+  <div class="card">
+    <h2>② 떡상 쇼츠 검색</h2>
+    <div class="grid">
+      <div><label>키워드</label><input id="q" placeholder="예: 다이소 꿀템, 재테크, 고양이"></div>
+      <div><label>기간</label>
+        <select id="days"><option value="7">최근 7일</option><option value="30" selected>최근 30일</option><option value="90">최근 90일</option><option value="365">최근 1년</option></select></div>
+      <div><label>최소 조회수</label><input id="minViews" type="number" value="100000"></div>
+      <div><label>채널 최대 구독자 (0=제한없음)</label><input id="maxSubs" type="number" value="100000"></div>
+      <div><label>국가</label><select id="region"><option value="KR">한국</option><option value="US">미국</option><option value="JP">일본</option><option value="">전체</option></select></div>
+      <div><label>검색 페이지(×50개)</label><select id="pages"><option>1</option><option selected>2</option><option>3</option></select></div>
+    </div>
+    <div class="row"><button id="searchBtn">검색</button></div>
+    <div class="status" id="searchStatus"></div>
+    <div id="results"></div>
+  </div>
+
+  <div class="card" id="analysisCard" style="display:none">
+    <h2>③ 심층 분석 · 소재 · 대본</h2>
+    <div id="picked"></div>
+    <div class="grid">
+      <div><label>내 채널 주제/톤 (선택)</label><input id="myNiche" placeholder="예: 20대 직장인 재테크, 친근한 반말"></div>
+      <div><label>목표 길이(초)</label><select id="len"><option>30</option><option selected>45</option><option>58</option></select></div>
+    </div>
+    <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="useVideo" style="width:auto"> 영상 URL을 Gemini에 직접 전달해 화면/연출까지 분석 (실패 시 자동으로 텍스트 분석)</label>
+    <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="useComments" style="width:auto" checked> 인기 댓글 포함</label>
+    <div class="row"><button id="analyzeBtn">분석 시작</button><button class="ghost" id="copyAll" style="display:none">결과 전체 복사</button></div>
+    <div class="status" id="anStatus"></div>
+    <div id="analysis"></div>
+  </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt = n => n >= 1e8 ? (n/1e8).toFixed(1)+'억' : n >= 1e4 ? (n/1e4).toFixed(1)+'만' : String(n);
+const store = { get(k){ try{return localStorage.getItem(k)||''}catch(e){return ''} }, set(k,v){ try{localStorage.setItem(k,v)}catch(e){} }, del(k){ try{localStorage.removeItem(k)}catch(e){} } };
+
+$('ytKey').value = store.get('sa_yt'); $('gmKey').value = store.get('sa_gm');
+if (store.get('sa_model')) $('gmModel').value = store.get('sa_model');
+$('saveKeys').onclick = () => { store.set('sa_yt',$('ytKey').value.trim()); store.set('sa_gm',$('gmKey').value.trim()); store.set('sa_model',$('gmModel').value.trim()); alert('저장했습니다.'); };
+$('clearKeys').onclick = () => { ['sa_yt','sa_gm','sa_model'].forEach(store.del); $('ytKey').value=''; $('gmKey').value=''; };
+
+function setStatus(el, msg, err){ el.textContent = msg; el.className = 'status' + (err ? ' err' : ''); }
+
+async function yt(path, params){
+  const key = $('ytKey').value.trim();
+  if (!key) throw new Error('YouTube API 키를 입력하세요.');
+  const u = new URL('https://www.googleapis.com/youtube/v3/' + path);
+  Object.entries(params).forEach(([k,v]) => { if (v !== '' && v != null) u.searchParams.set(k, v); });
+  u.searchParams.set('key', key);
+  const r = await fetch(u);
+  const j = await r.json();
+  if (!r.ok) throw new Error('YouTube API: ' + (j.error?.message || r.status));
+  return j;
+}
+
+function isoSec(d){
+  const m = /PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/.exec(d || '') || [];
+  return (+m[1]||0)*3600 + (+m[2]||0)*60 + (+m[3]||0);
+}
+
+let videos = [], picked = null, lastResult = null;
+
+$('searchBtn').onclick = async () => {
+  const q = $('q').value.trim();
+  if (!q) return setStatus($('searchStatus'), '키워드를 입력하세요.', true);
+  $('searchBtn').disabled = true; $('results').innerHTML = '';
+  try {
+    setStatus($('searchStatus'), '검색 중...');
+    const after = new Date(Date.now() - $('days').value * 864e5).toISOString();
+    let ids = [], token = '';
+    for (let p = 0; p < +$('pages').value; p++) {
+      const s = await yt('search', { part:'id', q, type:'video', videoDuration:'short', order:'viewCount', maxResults:50,
+        publishedAfter: after, regionCode: $('region').value, relevanceLanguage: 'ko', pageToken: token });
+      ids.push(...s.items.map(i => i.id.videoId));
+      token = s.nextPageToken; if (!token) break;
+    }
+    if (!ids.length) throw new Error('검색 결과가 없습니다.');
+    setStatus($('searchStatus'), '영상 정보 조회 중...');
+    let vids = [];
+    for (let i = 0; i < ids.length; i += 50) {
+      const v = await yt('videos', { part:'snippet,statistics,contentDetails', id: ids.slice(i,i+50).join(',') });
+      vids.push(...v.items);
+    }
+    vids = vids.filter(v => isoSec(v.contentDetails.duration) <= 60);       // 쇼츠(1분 이하)만
+    const chIds = [...new Set(vids.map(v => v.snippet.channelId))];
+    const subs = {};
+    for (let i = 0; i < chIds.length; i += 50) {
+      const c = await yt('channels', { part:'statistics', id: chIds.slice(i,i+50).join(',') });
+      c.items.forEach(x => subs[x.id] = x.statistics.hiddenSubscriberCount ? 0 : +x.statistics.subscriberCount);
+    }
+    const minV = +$('minViews').value || 0, maxS = +$('maxSubs').value || 0;
+    videos = vids.map(v => ({
+      id: v.id, title: v.snippet.title, desc: v.snippet.description, tags: v.snippet.tags || [],
+      channel: v.snippet.channelTitle, channelId: v.snippet.channelId, published: v.snippet.publishedAt,
+      thumb: v.snippet.thumbnails?.medium?.url || '', sec: isoSec(v.contentDetails.duration),
+      views: +v.statistics.viewCount || 0, likes: +v.statistics.likeCount || 0, comments: +v.statistics.commentCount || 0,
+      subs: subs[v.snippet.channelId] || 0
+    })).filter(v => v.views >= minV && (!maxS || (v.subs > 0 && v.subs <= maxS)))
+      .map(v => ({ ...v, ratio: v.subs ? v.views / v.subs : 0 }))
+      .sort((a,b) => b.ratio - a.ratio || b.views - a.views);
+    renderResults();
+    setStatus($('searchStatus'), `쇼츠 ${videos.length}개 (구독자 대비 조회수 배율 순)`);
+  } catch (e) { setStatus($('searchStatus'), e.message, true); }
+  $('searchBtn').disabled = false;
+};
+
+function renderResults(){
+  $('results').innerHTML = videos.map((v,i) => `
+    <div class="vid">
+      <img src="${esc(v.thumb)}" alt="" loading="lazy">
+      <div class="meta">
+        <div class="t">${esc(v.title)}</div>
+        <div class="sub">${esc(v.channel)} · 구독자 ${v.subs ? fmt(v.subs) : '비공개'} · ${v.sec}초 · ${v.published.slice(0,10)}</div>
+        <div class="tags">
+          <span class="hot">조회 ${fmt(v.views)}</span>
+          ${v.subs ? `<span class="${v.ratio>=10?'hot':'good'}">구독자 대비 ${v.ratio.toFixed(1)}배</span>` : ''}
+          <span>좋아요 ${fmt(v.likes)}</span><span>댓글 ${fmt(v.comments)}</span>
+          ${v.views ? `<span>좋아요율 ${(v.likes/v.views*100).toFixed(1)}%</span>` : ''}
+        </div>
+        <div class="row" style="margin-top:6px">
+          <button class="copy" onclick="pick(${i})">이 영상 분석</button>
+          <a class="hint" href="https://www.youtube.com/shorts/${esc(v.id)}" target="_blank" rel="noopener">열기 ↗</a>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+window.pick = i => {
+  picked = videos[i];
+  $('analysisCard').style.display = 'block';
+  $('picked').innerHTML = `<div class="box"><b>${esc(picked.title)}</b>\n${esc(picked.channel)} · 조회 ${fmt(picked.views)} · 구독자 ${picked.subs ? fmt(picked.subs) : '비공개'}</div>`;
+  $('analysis').innerHTML = ''; $('copyAll').style.display = 'none';
+  $('analysisCard').scrollIntoView({ behavior:'smooth' });
+};
+
+const ANALYSIS_KEYS = [
+  '① 후킹(첫 1~3초)','② 제목·썸네일 전략','③ 타깃 시청자와 니즈','④ 감정 트리거','⑤ 스토리 구조/전개','⑥ 편집 리듬·컷 전환',
+  '⑦ 자막·텍스트 연출','⑧ 사운드·BGM·나레이션','⑨ 시청 지속 유지 장치(루프/반전)','⑩ 댓글·공유·저장 유도 요소','⑪ 떡상 핵심 요인 한 줄 결론'
+];
+
+function buildPrompt(v, comments){
+  const my = $('myNiche').value.trim(), len = $('len').value;
+  return `당신은 유튜브 쇼츠 성장 전문 분석가입니다. 아래 떡상 쇼츠를 분석하고 반드시 JSON만 출력하세요.
+
+[영상 정보]
+제목: ${v.title}
+채널: ${v.channel} (구독자 ${v.subs || '비공개'}명)
+조회수: ${v.views} / 좋아요: ${v.likes} / 댓글: ${v.comments} / 길이: ${v.sec}초 / 업로드: ${v.published}
+구독자 대비 조회수 배율: ${v.ratio ? v.ratio.toFixed(1) : '알 수 없음'}배
+태그: ${v.tags.join(', ') || '없음'}
+설명: ${v.desc.slice(0, 800)}
+${comments.length ? '인기 댓글:\n- ' + comments.join('\n- ') : ''}
+
+[내 채널 정보] ${my || '지정 없음(범용)'}
+[목표 길이] ${len}초
+
+[출력 JSON 스키마]
+{
+ "analysis": [ ${ANALYSIS_KEYS.map(k => `{"item":"${k}","finding":"구체적 분석 2~3문장"}`).join(', ')} ],
+ "topics": [ {"type":"소재 유형(예: 동일 공식 다른 주제/역발상/시리즈화/트렌드 결합/니치 확장/Q&A)","title":"쇼츠 제목안","why":"먹힐 이유","hook":"첫 3초 후킹 멘트"} ],   // 정확히 6개
+ "script": { "title":"최종 제목","sections":[ {"time":"0-3초","role":"후킹","narration":"","visual":"","caption":""} ], "cta":"" },   // 구간별 연출 대본, 총 ${len}초
+ "thumbnailPrompt": "썸네일 이미지 생성 프롬프트(영문)",
+ "videoPrompts": [ {"time":"0-3초","prompt":"AI 영상 생성용 프롬프트(영문, 카메라/조명/움직임 포함)"} ],
+ "hashtags": ["..."]
+}
+분석은 원본을 그대로 베끼지 않고 '재현 가능한 공식'으로 추출하세요. 대본은 한국어, 프롬프트는 영문으로 작성하세요.`;
+}
+
+async function fetchComments(id){
+  try {
+    const c = await yt('commentThreads', { part:'snippet', videoId:id, order:'relevance', maxResults:15, textFormat:'plainText' });
+    return c.items.map(i => i.snippet.topLevelComment.snippet.textDisplay.replace(/\s+/g,' ').slice(0,120));
+  } catch (e) { return []; }
+}
+
+async function gemini(prompt, videoUrl){
+  const key = $('gmKey').value.trim();
+  if (!key) throw new Error('Gemini API 키를 입력하세요.');
+  const model = $('gmModel').value.trim() || 'gemini-2.5-flash';
+  const parts = [];
+  if (videoUrl) parts.push({ fileData: { fileUri: videoUrl } });
+  parts.push({ text: prompt });
+  const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
+    method:'POST',
+    headers: { 'Content-Type':'application/json', 'x-goog-api-key': key },
+    body: JSON.stringify({ contents:[{ role:'user', parts }], generationConfig:{ responseMimeType:'application/json', temperature:0.8 } })
+  });
+  const j = await r.json();
+  if (!r.ok) throw new Error('Gemini API: ' + (j.error?.message || r.status));
+  const txt = j.candidates?.[0]?.content?.parts?.map(p => p.text || '').join('') || '';
+  if (!txt) throw new Error('Gemini 응답이 비어 있습니다.');
+  return JSON.parse(txt.replace(/^```json\s*|```$/g, '').trim());
+}
+
+$('analyzeBtn').onclick = async () => {
+  if (!picked) return;
+  $('analyzeBtn').disabled = true; $('analysis').innerHTML = '';
+  try {
+    const comments = $('useComments').checked ? await fetchComments(picked.id) : [];
+    const prompt = buildPrompt(picked, comments);
+    let res;
+    if ($('useVideo').checked) {
+      setStatus($('anStatus'), '영상 직접 분석 중... (1~2분 걸릴 수 있음)');
+      try { res = await gemini(prompt, `https://www.youtube.com/watch?v=${picked.id}`); }
+      catch (e) { setStatus($('anStatus'), '영상 분석 실패, 텍스트 분석으로 전환: ' + e.message); }
+    }
+    if (!res) { setStatus($('anStatus'), '분석 중...'); res = await gemini(prompt); }
+    lastResult = res; renderAnalysis(res);
+    setStatus($('anStatus'), '완료');
+    $('copyAll').style.display = '';
+  } catch (e) { setStatus($('anStatus'), e.message, true); }
+  $('analyzeBtn').disabled = false;
+};
+
+const copyBtn = t => `<button class="copy ghost" onclick="navigator.clipboard.writeText(this.dataset.t).then(()=>{this.textContent='복사됨'})" data-t="${esc(t)}">복사</button>`;
+
+function renderAnalysis(r){
+  let h = '<h2 style="margin-top:16px">📊 11가지 심층 분석</h2>';
+  h += (r.analysis || []).map((a,i) => `<details ${i===10?'open':''}><summary>${esc(a.item)}</summary><div class="in">${esc(a.finding)}</div></details>`).join('');
+  h += '<h2 style="margin-top:16px">💡 소재 6가지</h2>';
+  h += (r.topics || []).map((t,i) => `<div class="box"><b>${i+1}. [${esc(t.type)}] ${esc(t.title)}</b>\n왜 먹히나: ${esc(t.why)}\n후킹: ${esc(t.hook)}</div>`).join('');
+  const s = r.script || {};
+  h += `<h2 style="margin-top:16px">🎬 구간별 연출 대본</h2><div class="box"><b>${esc(s.title)}</b></div>`;
+  h += (s.sections || []).map(x => `<div class="box"><b>${esc(x.time)} · ${esc(x.role)}</b>\n🎙 ${esc(x.narration)}\n🎥 ${esc(x.visual)}\n💬 자막: ${esc(x.caption)}</div>`).join('');
+  if (s.cta) h += `<div class="box"><b>CTA</b> ${esc(s.cta)}</div>`;
+  h += `<h2 style="margin-top:16px">🖼 킬러 프롬프트</h2><div class="box"><b>썸네일</b>\n${esc(r.thumbnailPrompt)}</div>${copyBtn(r.thumbnailPrompt)}`;
+  h += (r.videoPrompts || []).map(v => `<div class="box"><b>${esc(v.time)}</b>\n${esc(v.prompt)}</div>${copyBtn(v.prompt)}`).join('');
+  if (r.hashtags?.length) h += `<div class="box">${esc(r.hashtags.map(t => t.startsWith('#') ? t : '#'+t).join(' '))}</div>`;
+  $('analysis').innerHTML = h;
+}
+
+$('copyAll').onclick = () => {
+  if (lastResult) navigator.clipboard.writeText(JSON.stringify(lastResult, null, 2)).then(() => { $('copyAll').textContent = '복사됨'; setTimeout(() => $('copyAll').textContent = '결과 전체 복사', 1500); });
+};
+</script>
+</body>
+</html>
