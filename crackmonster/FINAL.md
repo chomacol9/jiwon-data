@@ -35,9 +35,9 @@
 금 간 곳, 그냥 두지 말고 이런 방법도 확인해보세요.
 장갑 끼고 환기 잘 되는 곳에서 사용하세요. 제품 정보는 아래에서 확인하세요.
 
-보이스: 활기찬 음성 A (🇰🇷 Minjae, 남성 / Young / UGC, 감정 happy, 속도 1.1배)
-- Topview voiceId: `toybSY6FkYuXYRyTfdxJFqOVmCA7xVOs`
-- 생성 결과: taskId `d1d1230d96914001a2eb5a894a77b00c`, 길이 32.71초 (타임라인 43초보다 짧음 → 컷 간격/무음으로 조정 필요), Topview 보드 `106ad051a7d94e478e245b8cf1815aa6`
+보이스: 업로드된 나레이션 `voiceover_7790.mp3` 사용 (속도 변경 없이 원본 그대로)
+- 파일: `crackmonster/voiceover_7790.mp3`, 길이 25.68초 (타임라인 43초보다 짧음 → 컷 간격/무음으로 조정 필요)
+- 참고: 이전에 만든 Minjae TTS(1.1배, 32.71초, taskId `d1d1230d96914001a2eb5a894a77b00c`)는 사용하지 않음
 - 참조 영상: https://www.youtube.com/shorts/560GYBH09P0 (구성·템포 참고용, 아직 프레임 분석 전)
 
 ## 설명란 / 고정 댓글
